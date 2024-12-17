@@ -1,11 +1,21 @@
 package com.example.data_trans.main.controller;
 
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,5 +126,71 @@ public class MainController {
         }
         return "메세지 수신 완료";
     }
+
+    @PostMapping("/sendFile")
+    public String sendFile(@RequestParam("file") MultipartFile file, @RequestParam String userId, @RequestParam String recipientId) {
+        String url = "";
+        System.out.println(file);
+        System.out.println(userId);
+        try {
+            // recipientId에 URL 인코딩을 적용
+            String encodedRecipientId = URLEncoder.encode(recipientId, StandardCharsets.UTF_8.toString());
+            String encodedUserId = URLEncoder.encode(userId, StandardCharsets.UTF_8.toString());
+
+            for (Map.Entry<String, Integer> entry : users.entrySet()) {
+                // key와 value를 각각 처리
+                String key = entry.getKey();
+                int value = entry.getValue();
+                if (encodedRecipientId.equals(key)) {
+                    System.out.println("value =============================================" + value);
+                    url = "http://localhost:" + value + "/sendFile/?userId=" + encodedUserId + "&recipientId=" + encodedRecipientId;
+                    System.out.println(url);
+                }
+            }
+
+            // 파일을 멀티파트로 전송하는 설정
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", file);
+
+            System.out.println("Main===================================================");
+            System.out.println(file.getName());
+            System.out.println(file.getContentType());
+
+            // HTTP 헤더 설정
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            // 요청 엔티티 설정
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            // RestTemplate을 이용하여 다른 서버로 POST 요청을 통해 파일을 전송
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+
+            // 다른 서버로부터 받은 응답을 반환
+            return response.getBody();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return "Error encoding URL parameters";
+        }
+    }
+
+    @RequestMapping("/getfileurl")
+    public String getfileurl (@RequestParam String recipientId , @RequestParam String userId){
+        String url = "";
+        for (Map.Entry<String, Integer> entry : users.entrySet()) {
+            // key와 value를 각각 처리
+            String key = entry.getKey();
+            int value = entry.getValue();
+            if (recipientId.equals(key)) {
+                System.out.println("value =============================================" + value);
+                url = "http://localhost:" + value + "/chat/sendFile";
+                System.out.println(url);
+            }
+        }
+        return url;
+    }
+
+
 
 }

@@ -3,12 +3,16 @@ package com.example.data_trans.user;
 import com.example.data_trans.DataTransApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -60,7 +64,20 @@ public class UserServer {
                 System.out.println("메세지");
                 message = scanner.nextLine();
                 selectmessage(restTemplate,headers,message,userId,userlist);
-            } else {
+            } else if("파일".equals(message)){
+                getUsersList(restTemplate, headers);
+                System.out.println();
+                System.out.print("전송할 파일 경로 입력 : " );
+                String filePath = scanner.nextLine();
+                System.out.print("누구에게 보낼 것인가");
+                String recipientId = scanner.nextLine();
+                String url = getfileurl(restTemplate,headers,userId,recipientId);
+
+                System.out.println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
+                System.out.println(url);
+                System.out.println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
+                sendFile(restTemplate, headers,url, filePath);
+            }else {
                 // 일반 메시지 보내는 부분
                 sendMessage(restTemplate, headers, message, userId);
             }
@@ -107,6 +124,48 @@ public class UserServer {
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
     }
 
+    private static void sendFile(RestTemplate restTemplate, HttpHeaders headers, String url, String filePath) {
 
+
+        // 파일을 읽어서 byte[]로 변환
+        File file = new File(filePath);
+        byte[] fileContent = new byte[(int) file.length()];
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            fileInputStream.read(fileContent);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("User SERVER ================================================================================");
+        System.out.println(file.getName());
+
+        // 파일을 포함한 데이터 생성
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", new ByteArrayResource(fileContent) {
+            @Override
+            public String getFilename() {
+                return file.getName();
+            }
+        });
+
+        // HTTP 헤더 설정
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        // POST 요청 보내기
+        try {
+
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+            // 서버 응답 출력
+            System.out.println("Server response: " + response.getBody());
+        } catch (Exception e) {
+            System.err.println("Error during file transmission: " + e.getMessage());
+        }
+    }
+
+    private static String getfileurl(RestTemplate restTemplate, HttpHeaders headers, String userId, String recipientId){
+        String url = "http://localhost:8080/main/getfileurl?recipientId=" + recipientId + "&userId="+userId;
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        return response.getBody();
+    }
 
 }
