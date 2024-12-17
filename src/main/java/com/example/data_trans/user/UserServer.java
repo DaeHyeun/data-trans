@@ -39,20 +39,27 @@ public class UserServer {
 
         // 초기 서버 요청 (사용자 ID와 포트)
         sendInitialRequest(restTemplate, headers, userId, port);
-
         // 메시지 보내는 부분 반복
         while (true) {
             // 사용자로부터 메시지 입력 받기
-            System.out.print("메시지 입력: ");
             String message = scanner.nextLine();
+            String userlist = "";
 
             // 'exit' 입력 시 루프 종료
-            if ("exit".equalsIgnoreCase(message)) {
+            if ("퇴장".equalsIgnoreCase(message)) {
                 System.out.println("프로그램을 종료합니다.");
+                exitchat(restTemplate, headers,userId);
                 break;
             } else if ("유저".equals(message)) {
                 // 유저 목록을 요청하는 부분
                 getUsersList(restTemplate, headers);
+            } else if ("선택".equals(message)) {
+                getUsersList(restTemplate, headers);
+                System.out.println("보낼유저 선택");
+                userlist = scanner.nextLine();
+                System.out.println("메세지");
+                message = scanner.nextLine();
+                selectmessage(restTemplate,headers,message,userId,userlist);
             } else {
                 // 일반 메시지 보내는 부분
                 sendMessage(restTemplate, headers, message, userId);
@@ -67,7 +74,6 @@ public class UserServer {
     private static void sendInitialRequest(RestTemplate restTemplate, HttpHeaders headers, String userId, int port) {
         String url = "http://localhost:8080/main/port?userId=" + userId + "&port=" + port;
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
-        System.out.println("서버 응답: " + response.getBody());
     }
 
     // 유저 목록을 가져오는 요청
@@ -87,7 +93,20 @@ public class UserServer {
     private static void sendMessage(RestTemplate restTemplate, HttpHeaders headers, String message, String userId) {
         String url = "http://localhost:8080/main/message?message=" + message + "&userId=" + userId;
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
-        System.out.println("서버 응답: " + response.getBody());
     }
+
+    //선택 전송
+    private static void selectmessage (RestTemplate restTemplate, HttpHeaders headers, String message, String userId,String userlist){
+        String url = "http://localhost:8080/main/selectuser?message=" + message + "&userId=" + userId +"&userlist="+userlist;
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+    }
+
+    //퇴장
+    private static void exitchat (RestTemplate restTemplate, HttpHeaders headers,String userId){
+        String url =  url = "http://localhost:8080/main/exit?userId=" + userId;
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+    }
+
+
 
 }

@@ -22,4 +22,15 @@ rest-api -> MQ -> Grpc --> 세가지를 섞어가면서 진행
 각 설치 과정은 README에 기록
 
 restAPI 
+사용법 
+1. DataTransApplication 실행
+2. UserServer 실행(원하는 채팅 인원만큼 실행) -> 이름,포트번호 입력
+
+<기능> 
+유저 - 접속중인 인원 출력 
+선택 - 선택인원만 메세지 전송
+퇴장 - 채팅 종료
+
+
+
 

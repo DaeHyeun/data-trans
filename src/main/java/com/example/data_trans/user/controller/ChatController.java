@@ -14,4 +14,9 @@ public class ChatController {
         return "메시지 수신 완료";
     }
 
+    @RequestMapping("/open")
+    public void openchat(@RequestParam String message){
+        System.out.println(message);
+    }
+
 }
