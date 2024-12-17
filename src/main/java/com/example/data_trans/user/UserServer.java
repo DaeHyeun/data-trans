@@ -1,6 +1,8 @@
 package com.example.data_trans.user;
 
 import com.example.data_trans.DataTransApplication;
+import com.example.data_trans.main.util.FileChecksumUtil;
+import lombok.SneakyThrows;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.io.ByteArrayResource;
@@ -34,6 +36,8 @@ public class UserServer {
         SpringApplication app = new SpringApplication(UserServer.class);
         app.setDefaultProperties(Map.of("server.port", port));  // 포트 설정
         app.run(args);
+
+
 
         // RestTemplate 객체 생성
         RestTemplate restTemplate = new RestTemplate();
@@ -72,10 +76,7 @@ public class UserServer {
                 System.out.print("누구에게 보낼 것인가");
                 String recipientId = scanner.nextLine();
                 String url = getfileurl(restTemplate,headers,userId,recipientId);
-
-                System.out.println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
                 System.out.println(url);
-                System.out.println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
                 sendFile(restTemplate, headers,url, filePath);
             }else {
                 // 일반 메시지 보내는 부분
@@ -124,6 +125,7 @@ public class UserServer {
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
     }
 
+    @SneakyThrows
     private static void sendFile(RestTemplate restTemplate, HttpHeaders headers, String url, String filePath) {
 
 
@@ -135,6 +137,9 @@ public class UserServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        FileChecksumUtil fileChecksumUtil = new FileChecksumUtil();
+        String checksum = fileChecksumUtil.calculateChecksum(file, "SHA-256");
+        System.out.println("Checksum: " + checksum);
         System.out.println("User SERVER ================================================================================");
         System.out.println(file.getName());
 
@@ -146,6 +151,7 @@ public class UserServer {
                 return file.getName();
             }
         });
+        body.add("checksum",checksum);
 
         // HTTP 헤더 설정
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
