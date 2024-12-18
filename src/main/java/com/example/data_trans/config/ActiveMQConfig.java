@@ -36,8 +36,11 @@ public class ActiveMQConfig {
         activeMQConnectionFactory.setBrokerURL(activemqBrokerUrl);
         activeMQConnectionFactory.setUserName(activemqUsername);
         activeMQConnectionFactory.setPassword(activemqPassword);
+
         return activeMQConnectionFactory;
     }
+
+
 
     /**
      * Queue JmsTemplate을 생성하여 반환
