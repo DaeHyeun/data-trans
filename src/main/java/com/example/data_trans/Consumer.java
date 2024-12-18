@@ -17,51 +17,67 @@ public class Consumer implements Runnable, ExceptionListener{
 
     private String type;
     private String name;
-    private String message;
 
 
     public void run() {
         try {
 
-            // Create a ConnectionFactory
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
 
-            // Create a Connection
-            Connection connection = connectionFactory.createConnection();
-            connection.start();
+        Connection connection = connectionFactory.createConnection();
 
-            connection.setExceptionListener(this);
+            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            System.out.println(connection.getClientID());
+            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+        connection.setClientID(name);
+            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            System.out.println(connection.getClientID());
+            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
 
-            // Create a Session
-            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        connection.start();
+        connection.setExceptionListener(this);
 
-            // Create the destination (Topic or Queue)
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+        if(type.equals("queue")){
             Destination destination = session.createQueue(name);
-
             // Create a MessageConsumer from the Session to the Topic or Queue
             MessageConsumer consumer = session.createConsumer(destination);
-
             // Wait for a message
             Message message = consumer.receive(1000);
-
             if (message instanceof TextMessage) {
                 TextMessage textMessage = (TextMessage) message;
                 String text = textMessage.getText();
-                System.out.println("Received: " + type + text);
+                System.out.println("type : " + type + "\nname : " + name + "\nmessage : " + text);
             } else {
-                System.out.println("Received: " + message);
+                System.out.println("type : " + type + "\nname : " + name );
             }
-
             consumer.close();
-            session.close();
-            connection.close();
-        } catch (Exception e) {
-            System.out.println("Caught: " + e);
-            e.printStackTrace();
-        }
-    }
 
+        }else{
+            Topic destination = session.createTopic(name);
+            MessageConsumer consumer = session.createDurableSubscriber(destination,name);
+            Message message = consumer.receive();
+            if (message instanceof TextMessage) {
+                TextMessage textMessage = (TextMessage) message;
+                String text = textMessage.getText();
+                System.out.println("type : " + type + "\nname : " + name + "\nmessage : " + text);
+            } else {
+                System.out.println("type : " + type + "\nname : " + name );
+            }
+            consumer.close();
+        }
+            session.close();
+            System.out.println("세션 클로즈 ");
+            connection.close();
+            System.out.println("커넥션 클로즈 ");
+    } catch (Exception e) {
+        System.out.println("Caught: " + e);
+        e.printStackTrace();
+    }
+}
     public synchronized void onException(JMSException ex) {
         System.out.println("JMS Exception occured.  Shutting down client.");
     }
+
 }

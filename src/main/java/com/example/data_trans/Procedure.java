@@ -46,11 +46,11 @@ public class Procedure implements Runnable{
 
             // Create a messages
             String text = message;
-            TextMessage message = session.createTextMessage(text);
+            TextMessage textMessage = session.createTextMessage(text);
 
             // Tell the producer to send the message
-            System.out.println("Sent message: "+ message.hashCode() + " : " + Thread.currentThread().getName());
-            producer.send(message);
+            System.out.println("type : " + type + "\nname : " + name + "\nmessage : " + message);
+            producer.send(textMessage);
 
             // Clean up
             session.close();

@@ -12,22 +12,16 @@ public class MQController {
     @GetMapping("/consumer")
     public String consumer (@RequestParam String type, @RequestParam String name){
         Consumer consumer = new Consumer(type,name);
-        System.out.println("consumer type : " + consumer.getName());
-        System.out.println("consumer Name : " + consumer.getType());
         thread(consumer,false);
         return "new consumer";
     }
 
     @GetMapping("/procedure")
-    public String procedure (@RequestParam String type, @RequestParam String name){
-        Procedure procedure = new Procedure(type, name);
-        System.out.println("procedure type : " + procedure.getType());
-        System.out.println("procedure name : " + procedure.getName());
+    public String procedure (@RequestParam String type, @RequestParam String name, @RequestParam String message){
+        Procedure procedure = new Procedure(type,name,message);
         thread(procedure,false);
         return "new procedure";
     }
-
-
 
     public static void thread(Runnable runnable, boolean daemon) {
         Thread brokerThread = new Thread(runnable);
