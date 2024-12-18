@@ -25,19 +25,10 @@ public class Consumer implements Runnable, ExceptionListener{
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
 
         Connection connection = connectionFactory.createConnection();
-
-            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-            System.out.println(connection.getClientID());
-            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-        connection.setClientID(name);
-            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-            System.out.println(connection.getClientID());
-            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-
-        connection.start();
-        connection.setExceptionListener(this);
-
         Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        connection.setClientID(name);
+        connection.setExceptionListener(this);
+        connection.start();
 
         if(type.equals("queue")){
             Destination destination = session.createQueue(name);
