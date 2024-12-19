@@ -35,7 +35,7 @@ public class Procedure implements Runnable{
             // Create a Session
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            // Create the destination (same Queue for both Producer and Consumer)
+            // Create the destination
             Destination destination = session.createQueue(receivedId);
 
             // Create a MessageProducer from the Session to the Queue

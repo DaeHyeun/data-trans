@@ -33,7 +33,7 @@ public class Consumer implements Runnable, ExceptionListener{
 
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            // Use the same destination (Queue "chat")
+            // Destination
             Destination destination = session.createQueue(name);
 
             // Create a MessageConsumer from the Session to the Queue
@@ -58,7 +58,7 @@ public class Consumer implements Runnable, ExceptionListener{
                     File outputFile = new File("D:\\download", "받은파일" + System.currentTimeMillis() + ".txt");
                     try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                         fos.write(fileBytes);
-                            System.out.println("File received and saved as: " + outputFile.getAbsolutePath());
+                            System.out.println("파일전송 및 저장 : " + outputFile.getAbsolutePath());
                         } catch (IOException e) {
                             System.out.println("Error saving received file: " + e);
                         }
@@ -67,10 +67,6 @@ public class Consumer implements Runnable, ExceptionListener{
                     System.out.println(name + " received an unexpected message type.");
                 }
             }
-
-            // consumer.close(); // Unreachable due to infinite loop
-            // session.close();
-            // connection.close();
         } catch (Exception e) {
             System.out.println("Caught: " + e);
             e.printStackTrace();
