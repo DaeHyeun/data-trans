@@ -28,6 +28,7 @@ public class Consumer implements Runnable, ExceptionListener{
             ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
 
             Connection connection = connectionFactory.createConnection();
+            connection.setClientID(name);
             connection.start();
             connection.setExceptionListener(this);
 
@@ -37,7 +38,11 @@ public class Consumer implements Runnable, ExceptionListener{
             Topic topic = session.createTopic(cusTopic);
 
             // Create a MessageConsumer from the Session to the Topic
-            MessageConsumer consumer = session.createConsumer(topic);
+            // 기존 코드
+            // MessageConsumer consumer = session.createConsumer(topic);
+
+            // 수정된 코드
+            MessageConsumer consumer = session.createDurableSubscriber(topic, "subscription-" + name);
 
             // Continuously listen for new messages
             while (true) {

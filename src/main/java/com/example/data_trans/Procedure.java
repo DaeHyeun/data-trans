@@ -34,13 +34,15 @@ public class Procedure implements Runnable{
 
             // Create a Session
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            //DeliveryMode.NON_PERSISTENT
+            //DeliveryMode.PERSISTENT
 
             // Create the destination as Topic (Changed from Queue)
             Topic topic = session.createTopic(cusTopic);
 
             // Create a MessageProducer from the Session to the Topic
             MessageProducer producer = session.createProducer(topic);
-            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 
             if (file != null) {
                 // If a file is provided, send it as a BytesMessage
