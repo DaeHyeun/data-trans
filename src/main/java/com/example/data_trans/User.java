@@ -7,10 +7,10 @@ public class User {
     private Consumer consumer;
     private Procedure procedure;
 
-    public User(String name, String receivedId) {
+    public User(String name, String cusTopic) {
         // 각 사용자에 대한 Consumer와 Procedure 객체를 초기화합니다.
-        this.consumer = new Consumer( name, receivedId);
-        this.procedure = new Procedure( name, "",receivedId, null);
+        this.consumer = new Consumer(name, cusTopic);
+        this.procedure = new Procedure(name, cusTopic, "",  null);
     }
 
     public void startChat(String name) {
@@ -22,11 +22,11 @@ public class User {
         Scanner scanner = new Scanner(System.in);
         System.out.println("메시지를 입력하세요 ('exit' 입력 시 종료): ");
         while (true) {
-            System.out.print( name + " : " );
+            System.out.print(name + " : ");
             String message = scanner.nextLine();
             if (message.equalsIgnoreCase("exit")) {
                 break; // exit 입력 시 채팅 종료
-            }else if (message.equalsIgnoreCase("파일")) {
+            } else if (message.equalsIgnoreCase("파일")) {
                 // Prompt user to select a file to send
                 System.out.println("파일을 선택하세요 (파일 경로 입력): ");
                 String filePath = scanner.nextLine();
@@ -47,9 +47,9 @@ public class User {
         Scanner scanner = new Scanner(System.in);
         System.out.println("사용자 이름을 입력하세요: ");
         String name = scanner.nextLine();
-        System.out.println("채팅 상대방 이름을 입력하세요");
-        String receivedId = scanner.nextLine();
-        User user = new User(name, receivedId);
+        System.out.println("토픽 입력");
+        String cusTopic = scanner.nextLine();
+        User user = new User(name, cusTopic);
         user.startChat(name); // 채팅 시작
     }
 }

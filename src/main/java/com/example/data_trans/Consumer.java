@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 @Setter
 public class Consumer implements Runnable, ExceptionListener{
     private String name;
-    private String receivedId;
+    private String cusTopic ;
 
     public void run() {
         try {
@@ -33,11 +33,11 @@ public class Consumer implements Runnable, ExceptionListener{
 
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            // Destination
-            Destination destination = session.createQueue(name);
+            // Destination changed to Topic
+            Topic topic = session.createTopic(cusTopic);
 
-            // Create a MessageConsumer from the Session to the Queue
-            MessageConsumer consumer = session.createConsumer(destination);
+            // Create a MessageConsumer from the Session to the Topic
+            MessageConsumer consumer = session.createConsumer(topic);
 
             // Continuously listen for new messages
             while (true) {
@@ -46,7 +46,7 @@ public class Consumer implements Runnable, ExceptionListener{
                     // Handle text message
                     TextMessage textMessage = (TextMessage) message;
                     String text = textMessage.getText();
-                    System.out.println(receivedId + " : " + text);
+                    System.out.println(text);
                 } else if (message instanceof BytesMessage) {
 
                     // Handle file (BytesMessage)
@@ -58,11 +58,10 @@ public class Consumer implements Runnable, ExceptionListener{
                     File outputFile = new File("D:\\download", "받은파일" + System.currentTimeMillis() + ".txt");
                     try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                         fos.write(fileBytes);
-                            System.out.println("파일전송 및 저장 : " + outputFile.getAbsolutePath());
-                        } catch (IOException e) {
-                            System.out.println("Error saving received file: " + e);
-                        }
-
+                        System.out.println("파일전송 및 저장 : " + outputFile.getAbsolutePath());
+                    } catch (IOException e) {
+                        System.out.println("Error saving received file: " + e);
+                    }
                 } else {
                     System.out.println(name + " received an unexpected message type.");
                 }

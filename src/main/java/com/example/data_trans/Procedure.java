@@ -18,8 +18,8 @@ import java.io.FileInputStream;
 @Setter
 public class Procedure implements Runnable{
     private String name;
+    private String cusTopic;
     private String message;
-    private String receivedId;
     private File file; // To hold the file to be sent
 
     @Override
@@ -35,11 +35,11 @@ public class Procedure implements Runnable{
             // Create a Session
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            // Create the destination
-            Destination destination = session.createQueue(receivedId);
+            // Create the destination as Topic (Changed from Queue)
+            Topic topic = session.createTopic(cusTopic);
 
-            // Create a MessageProducer from the Session to the Queue
-            MessageProducer producer = session.createProducer(destination);
+            // Create a MessageProducer from the Session to the Topic
+            MessageProducer producer = session.createProducer(topic);
             producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 
             if (file != null) {
