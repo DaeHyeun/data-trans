@@ -8,7 +8,7 @@ import javax.lang.model.element.NestingKind;
 @RequestMapping("/mq")
 public class MQController {
 
-
+/*
     @GetMapping("/consumer")
     public String consumer (@RequestParam String type, @RequestParam String name){
         Consumer consumer = new Consumer(type,name);
@@ -18,7 +18,7 @@ public class MQController {
 
     @GetMapping("/procedure")
     public String procedure (@RequestParam String type, @RequestParam String name, @RequestParam String message){
-        Procedure procedure = new Procedure(type,name,message);
+        Procedure procedure = new Procedure(name,message);
         thread(procedure,false);
         return "new procedure";
     }
@@ -27,5 +27,5 @@ public class MQController {
         Thread brokerThread = new Thread(runnable);
         brokerThread.setDaemon(daemon);
         brokerThread.start();
-    }
+    }*/
 }

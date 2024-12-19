@@ -8,76 +8,76 @@ import lombok.Setter;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Service
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 public class Consumer implements Runnable, ExceptionListener{
-
-    private String type;
     private String name;
-
+    private String receivedId;
 
     public void run() {
         try {
+            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
 
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
+            Connection connection = connectionFactory.createConnection();
+            connection.start();
+            connection.setExceptionListener(this);
 
-        Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-            System.out.println(connection.getClientID());
-            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-        connection.setClientID(name);
-            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-            System.out.println(connection.getClientID());
-            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-
-        connection.start();
-        connection.setExceptionListener(this);
-
-        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-        if(type.equals("queue")){
+            // Use the same destination (Queue "chat")
             Destination destination = session.createQueue(name);
-            // Create a MessageConsumer from the Session to the Topic or Queue
+
+            // Create a MessageConsumer from the Session to the Queue
             MessageConsumer consumer = session.createConsumer(destination);
-            // Wait for a message
-            Message message = consumer.receive(1000);
-            if (message instanceof TextMessage) {
-                TextMessage textMessage = (TextMessage) message;
-                String text = textMessage.getText();
-                System.out.println("type : " + type + "\nname : " + name + "\nmessage : " + text);
-            } else {
-                System.out.println("type : " + type + "\nname : " + name );
-            }
-            consumer.close();
 
-        }else{
-            Topic destination = session.createTopic(name);
-            MessageConsumer consumer = session.createDurableSubscriber(destination,name);
-            Message message = consumer.receive();
-            if (message instanceof TextMessage) {
-                TextMessage textMessage = (TextMessage) message;
-                String text = textMessage.getText();
-                System.out.println("type : " + type + "\nname : " + name + "\nmessage : " + text);
-            } else {
-                System.out.println("type : " + type + "\nname : " + name );
+            // Continuously listen for new messages
+            while (true) {
+                Message message = consumer.receive(); // Wait indefinitely for a new message
+                if (message instanceof TextMessage) {
+                    // Handle text message
+                    TextMessage textMessage = (TextMessage) message;
+                    String text = textMessage.getText();
+                    System.out.println(receivedId + " : " + text);
+                } else if (message instanceof BytesMessage) {
+
+                    // Handle file (BytesMessage)
+                    BytesMessage bytesMessage = (BytesMessage) message;
+                    byte[] fileBytes = new byte[(int) bytesMessage.getBodyLength()];
+                    bytesMessage.readBytes(fileBytes);
+
+                    // Save the file to the specified location
+                    File outputFile = new File("D:\\download", "받은파일" + System.currentTimeMillis() + ".txt");
+                    try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                        fos.write(fileBytes);
+                            System.out.println("File received and saved as: " + outputFile.getAbsolutePath());
+                        } catch (IOException e) {
+                            System.out.println("Error saving received file: " + e);
+                        }
+
+                } else {
+                    System.out.println(name + " received an unexpected message type.");
+                }
             }
-            consumer.close();
+
+            // consumer.close(); // Unreachable due to infinite loop
+            // session.close();
+            // connection.close();
+        } catch (Exception e) {
+            System.out.println("Caught: " + e);
+            e.printStackTrace();
         }
-            session.close();
-            System.out.println("세션 클로즈 ");
-            connection.close();
-            System.out.println("커넥션 클로즈 ");
-    } catch (Exception e) {
-        System.out.println("Caught: " + e);
-        e.printStackTrace();
-    }
-}
-    public synchronized void onException(JMSException ex) {
-        System.out.println("JMS Exception occured.  Shutting down client.");
     }
 
+    public synchronized void onException(JMSException ex) {
+        System.out.println("JMS Exception occured. Shutting down client.");
+    }
 }
