@@ -46,6 +46,8 @@ dependencies {
 	// JAXB 구현체 (GlassFish)
 	implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.2'
 
+	implementation 'org.jsoup:jsoup:1.15.4'  // 최신 버전은 Jsoup 공식 사이트나 Maven Central에서 확인 가능
+
 	// 테스트 관련 의존성
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
