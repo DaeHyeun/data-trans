@@ -3,10 +3,7 @@ package com.example.data_trans.user.controller;
 import com.example.data_trans.main.util.FileChecksumUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +13,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/chat")
@@ -31,6 +30,7 @@ public class ChatController {
     public void openchat(@RequestParam String message){
         System.out.println(message);
     }
+
     @PostMapping("/sendFile")
     public String receiveFile( @RequestParam("file") MultipartFile file,  @RequestParam("checksum") String checksum) {
         try {
@@ -63,6 +63,29 @@ public class ChatController {
             e.printStackTrace();
             return "Failed to save the file";
         }
+    }
+
+    @PostMapping("/transMap")
+    public String receiveTransMapData(@RequestParam String userId, @RequestParam String recipientId, @RequestBody HashMap<String, Object> map) {
+        // map에서 받은 데이터 처리
+        System.out.println("chatController");
+        System.out.println("recipientId : " + recipientId );
+        System.out.println("userId : " + userId);
+        System.out.println("Received data: " + map);
+
+        System.out.println("==============================================================================================================================");
+        System.out.println();
+        for (String key : map.keySet()) {
+            Object value = map.get(key);  // key에 대응하는 값을 가져옴
+            System.out.print("Key: " + key + ", Value: " + value);
+            System.out.println("   ====   Class: " + value.getClass());
+            System.out.println();
+        }
+        System.out.println("==============================================================================================================================");
+
+
+        // 응답 데이터 반환 (여기서는 단순히 받은 데이터를 JSON 형태로 응답)
+        return "Received map with size: " + map.size();
     }
 
 }

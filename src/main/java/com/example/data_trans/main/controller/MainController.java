@@ -4,18 +4,17 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -190,6 +189,68 @@ public class MainController {
         }
         return url;
     }
+    // transMap을 처리하는 @PostMapping 추가
+    @PostMapping("/transMap")
+    public String receiveTransMapData(
+            @RequestParam String userId,
+            @RequestParam String recipientId,
+            @RequestBody HashMap<String, Object> map) {
+        // map에서 받은 데이터 처리
+        System.out.println("mainController");
+        System.out.println("recipientId : " + recipientId );
+        System.out.println("userId : " + userId);
+        System.out.println("Received data: " + map);
+
+        for (Map.Entry<String, Integer> entry : users.entrySet()) {
+            // key와 value를 각각 처리
+            String key = entry.getKey();
+            int value = entry.getValue();
+            if(recipientId.equals(key)){
+                // RestTemplate 객체 생성
+                RestTemplate restTemplate = new RestTemplate();
+
+                // HTTP 요청 헤더 준비
+                HttpHeaders headers = new HttpHeaders();
+
+                // URL을 설정 (UriComponentsBuilder를 사용하여 안전하게 URL 생성)
+                String url = UriComponentsBuilder.fromHttpUrl("http://localhost:"+value+"/chat/transMap")
+                        .queryParam("recipientId", recipientId)
+                        .queryParam("userId", userId)
+                        .toUriString();
+
+                // HTTP 헤더 설정 (필요한 헤더가 있다면 추가)
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                // HTTP POST 요청 전송
+                HttpEntity<HashMap<String, Object>> entity = new HttpEntity<>(map, headers);
+
+                try {
+                    // POST 요청을 보내고 응답을 받음
+                    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+                    // 응답을 처리하여 파일 URL 반환 (응답 상태 코드가 성공적일 경우)
+                    if (response.getStatusCode().is2xxSuccessful()) {
+                        String responseBody = response.getBody();
+                        // JSON 파싱이 필요한 경우 ObjectMapper 등을 활용하여 처리할 수 있음
+                        return responseBody;
+                    } else {
+                        // 실패 시 상태 코드와 응답 본문을 반환
+                        return "Error: " + response.getStatusCode() + " - " + response.getBody();
+                    }
+                } catch (Exception e) {
+                    // 예외 처리
+                    return "Error occurred: " + e.getMessage();
+                }
+
+
+
+            }
+        }
+        return "";
+
+    }
+
+
 
 
 

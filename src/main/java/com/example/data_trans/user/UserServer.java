@@ -1,6 +1,7 @@
 package com.example.data_trans.user;
 
 import com.example.data_trans.DataTransApplication;
+import com.example.data_trans.factory.Main;
 import com.example.data_trans.main.util.FileChecksumUtil;
 import lombok.SneakyThrows;
 import org.springframework.boot.SpringApplication;
@@ -11,6 +12,7 @@ import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,7 +38,6 @@ public class UserServer {
         SpringApplication app = new SpringApplication(UserServer.class);
         app.setDefaultProperties(Map.of("server.port", port));  // 포트 설정
         app.run(args);
-
 
 
         // RestTemplate 객체 생성
@@ -78,7 +79,18 @@ public class UserServer {
                 String url = getfileurl(restTemplate,headers,userId,recipientId);
                 System.out.println(url);
                 sendFile(restTemplate, headers,url, filePath);
-            }else {
+            }else if("자료".equals(message)){
+                // Main 클래스에서 getCollectedData() 메서드를 호출하여 데이터를 가져옴
+                HashMap<String, Object> collectedData = Main.getCollectedData();
+                // 데이터 출력
+                System.out.println("Received Data: " + collectedData);
+                System.out.print("누구에게 보낼 것인가");
+                String recipientId = scanner.nextLine();
+                transMap(restTemplate,headers,userId,recipientId,collectedData);
+
+
+            }
+            else {
                 // 일반 메시지 보내는 부분
                 sendMessage(restTemplate, headers, message, userId);
             }
@@ -172,6 +184,38 @@ public class UserServer {
         String url = "http://localhost:8080/main/getfileurl?recipientId=" + recipientId + "&userId="+userId;
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
         return response.getBody();
+    }
+
+    private static String transMap(RestTemplate restTemplate, HttpHeaders headers, String userId, String recipientId, HashMap<String, Object> map) {
+        // URL을 설정 (UriComponentsBuilder를 사용하여 안전하게 URL 생성)
+        String url = UriComponentsBuilder.fromHttpUrl("http://localhost:8080/main/transMap")
+                .queryParam("recipientId", recipientId)
+                .queryParam("userId", userId)
+                .toUriString();
+
+        // HTTP 헤더 설정 (필요한 헤더가 있다면 추가)
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // HTTP POST 요청 전송
+        HttpEntity<HashMap<String, Object>> entity = new HttpEntity<>(map, headers);
+
+        try {
+            // POST 요청을 보내고 응답을 받음
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+            // 응답을 처리하여 파일 URL 반환 (응답 상태 코드가 성공적일 경우)
+            if (response.getStatusCode().is2xxSuccessful()) {
+                String responseBody = response.getBody();
+                // JSON 파싱이 필요한 경우 ObjectMapper 등을 활용하여 처리할 수 있음
+                return responseBody;
+            } else {
+                // 실패 시 상태 코드와 응답 본문을 반환
+                return "Error: " + response.getStatusCode() + " - " + response.getBody();
+            }
+        } catch (Exception e) {
+            // 예외 처리
+            return "Error occurred: " + e.getMessage();
+        }
     }
 
 }
