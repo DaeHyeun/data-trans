@@ -1,6 +1,7 @@
 package com.example.data_trans;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class User {
@@ -10,7 +11,7 @@ public class User {
     public User(String name, String receivedId) {
         // 각 사용자에 대한 Consumer와 Procedure 객체를 초기화합니다.
         this.consumer = new Consumer( name, receivedId);
-        this.procedure = new Procedure( name, "",receivedId, null);
+        this.procedure = new Procedure( name, "",receivedId, null,null);
     }
 
     public void startChat(String name) {
@@ -33,7 +34,28 @@ public class User {
                 File file = new File(filePath);
                 procedure.setFile(file); // Set the file to send
                 new Thread(procedure).start();
-            } else {
+            } else if(message.equalsIgnoreCase("자료")){
+                HashMap<String, Object> mapData = new HashMap<>();
+                while (true){
+                    System.out.println("키 입력");
+                    String key = scanner.nextLine();
+                    System.out.println("값 입력");
+                    // nextLine()을 사용하여 값을 받아오는 것이 좋습니다.
+                    String value = scanner.nextLine();
+                    mapData.put(key, value);
+                    System.out.println("추가자료 : 0 입력");
+                    System.out.println("데이터 보내기 : 1 입력");
+                    if (scanner.nextInt() == 0){
+                        scanner.nextLine();
+                        continue;
+                    }else {
+                        break;
+                    }
+                }
+                System.out.println("최종자료 : " + mapData);
+                procedure.setMapData(mapData);
+                new Thread(procedure).start();
+            }else {
                 procedure.setFile(null);
                 procedure.setMessage(message);
                 new Thread(procedure).start(); // Send a regular text message

@@ -13,6 +13,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Enumeration;
+import java.util.HashMap;
 
 @Service
 @AllArgsConstructor
@@ -63,6 +65,38 @@ public class Consumer implements Runnable, ExceptionListener{
                             System.out.println("Error saving received file: " + e);
                         }
 
+                } else if (message instanceof MapMessage) {
+                    // Handle MapMessage
+                    MapMessage mapMessage = (MapMessage) message;
+                    HashMap<String, Object> mapData = new HashMap<>();
+
+                    // Extract data from the MapMessage and store it in the HashMap
+                    for (Enumeration<?> e = mapMessage.getMapNames(); e.hasMoreElements(); ) {
+                        String key = (String) e.nextElement();
+                        Object value = null;
+
+                        // Depending on the type of value, get the corresponding value from the MapMessage
+                        try {
+                            if (mapMessage.itemExists(key)) {
+                                if (mapMessage.getObject(key) instanceof String) {
+                                    value = mapMessage.getString(key);
+                                } else if (mapMessage.getObject(key) instanceof Integer) {
+                                    value = mapMessage.getInt(key);
+                                } else if (mapMessage.getObject(key) instanceof Boolean) {
+                                    value = mapMessage.getBoolean(key);
+                                } else if (mapMessage.getObject(key) instanceof Double) {
+                                    value = mapMessage.getDouble(key);
+                                } else {
+                                    value = mapMessage.getObject(key); // For other types
+                                }
+                                mapData.put(key, value); // Add the key-value pair to the map
+
+                            }
+                        } catch (JMSException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                    System.out.println(mapData);
                 } else {
                     System.out.println(name + " received an unexpected message type.");
                 }

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @NoArgsConstructor
@@ -20,6 +22,7 @@ public class Procedure implements Runnable{
     private String name;
     private String message;
     private String receivedId;
+    private HashMap<String, Object> mapData;
     private File file; // To hold the file to be sent
 
     @Override
@@ -51,7 +54,21 @@ public class Procedure implements Runnable{
                     bytesMessage.writeBytes(fileBytes);
                 }
                 producer.send(bytesMessage); // Send the file as a BytesMessage
-            } else {
+            } else if(mapData != null){
+                // If a message is provided, send a MapMessage
+                MapMessage mapMessage = session.createMapMessage();
+                for (Map.Entry<String, Object> entry : mapData.entrySet()) {
+                    if (entry.getValue() instanceof String) {
+                        mapMessage.setString(entry.getKey(), (String) entry.getValue()); // Add key-value pairs
+                    } else if (entry.getValue() instanceof Integer) {
+                        mapMessage.setInt(entry.getKey(), Integer.parseInt(entry.getKey()));
+                    } else if (entry.getValue() instanceof Character) {
+                        mapMessage.setChar(entry.getKey(), (Character) entry.getValue());
+                    }
+                }
+                // Send the MapMessage
+                producer.send(mapMessage); // Send the MapMessage
+            }else {
                 // If no file, send a regular TextMessage
                 TextMessage textMessage = session.createTextMessage(message);
                 producer.send(textMessage); // Send the text message
